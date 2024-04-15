@@ -17,6 +17,7 @@ import {
  */
 const CARD_SELECTOR = {
     ACTION_DIV: ".jquery-uploader-preview-action",
+    ACTION_DOWNLOAD: ".jquery-uploader-preview-action .file-download",
     ACTION_DELETE: ".jquery-uploader-preview-action .file-delete",
     ACTION_VIEW: ".jquery-uploader-preview-action .file-view",
     PROGRESS_DIV: ".jquery-uploader-preview-progress",
@@ -168,15 +169,24 @@ export default class Uploader {
     initEle() {
         //隐藏原生元素
         this.$originEle.css("display", "none")
+        // this.$selectCard = $(
+        //     `<div class="jquery-uploader-select-card">
+        //         <div class="jquery-uploader-select">
+        //             <div class="upload-button">
+        //                 <i class="fa fa-plus"></i><br/>
+        //                 <a>上传</a>
+        //             </div>
+        //         </div>
+        //     </div>`)
         this.$selectCard = $(
             `<div class="jquery-uploader-select-card">
                 <div class="jquery-uploader-select">
                     <div class="upload-button">
                         <i class="fa fa-plus"></i><br/>
-                        <a>上传</a>
+                        <a>Drop File</a>
                     </div>
                 </div>
-            </div>`)
+            </div>`)         
         this.$uploaderContainer = $(`<div class="jquery-uploader-preview-container"></div>`)
         this.$uploader = $(`<div class="jquery-uploader"></div>`)
             .append(this.$uploaderContainer)
@@ -206,13 +216,17 @@ export default class Uploader {
         let filePreview = type === FILE_TYPE.IMAGE ? `<img alt="preview" class="files_img" src="${url}"/>` : `<div class="file_other"></div>`
 
         //判断当前是否支持预览
-        let viewerHtml = "";
+        let viewerHtml = ""
         let deleteHtml = ""
         if (exitsViewerJs() && type === FILE_TYPE.IMAGE) {
             viewerHtml = `<li class="file-view"><i class="fa fa-eye"></i></li>`
         }
+        if (exitsViewerJs() && type === FILE_TYPE.OTHER) {
+            viewerHtml = `<li class="file-download"><i class="fa fa-download"></i></li>`
+        }        
         if (!this.options.readonly) {
-            deleteHtml = `<li class="file-delete"><i class="fa fa-trash-o"></i></li>`
+            // deleteHtml = `<li class="file-delete"><i class="fa fa-trash-o"></i></li>`
+            deleteHtml = `<li class="file-delete"><i class="fa fa-trash-alt"></i></li>`
         }
         let $previewCard = $(
             `<div class="jquery-uploader-card" id="${id}">
@@ -340,15 +354,15 @@ export default class Uploader {
         if (oldValue !== newValue) {
             this.$originEle.val(newValue).trigger("change")
         }
-
     }
 
     refreshPreviewFileList() {
         this.$uploaderContainer.empty();
         this.files.forEach(file => {
             this.$uploaderContainer.append(file.$ele)
+            file.$ele.find(CARD_SELECTOR.ACTION_DOWNLOAD).on("click", this.handleFileDownload.bind(this))
             file.$ele.find(CARD_SELECTOR.ACTION_DELETE).on("click", this.handleFileDelete.bind(this))
-            file.$ele.find(CARD_SELECTOR.ACTION_VIEW).on("click", this.handleFileView.bind(this))
+            file.$ele.find(CARD_SELECTOR.ACTION_VIEW).on("click", this.handleFileView.bind(this))            
         })
         let canAdd = false;
         if ((this.options.multiple || this.files.length === 0) && !this.options.readonly && (this.files.length < this.options.maxLength)) {
@@ -562,7 +576,6 @@ export default class Uploader {
             } catch (e) {
                 this.onFileUploadError(file, "ajax请求异常")
             }
-
         })
     }
 
@@ -612,8 +625,33 @@ export default class Uploader {
         $(document.body).append($imageViewContainer)
         this.viewer = new window.Viewer(document.getElementById("viewer-" + this.id))
         $("#img-" + uploaderFile.id).click()
+    }
 
-
+    handleFileDownload(event) {
+        let $selectCard = $(event.target).parents(".jquery-uploader-card")
+        let id = $selectCard[0].id
+        let uploaderFile = null
+        //移除旧的图片容器
+        // this.viewer && this.viewer.destroy()
+        // $("#viewer-" + this.id).remove()
+        //添加新的
+        // let $imageViewContainer = $(`<div style="display: none" id="viewer-${this.id}"></div>`)
+        this.files.forEach((file) => {
+                if (file.id === id) {
+                    uploaderFile = file
+                }
+                // if (file.type === FILE_TYPE.IMAGE) {
+                //     $imageViewContainer.append($(`<img id="img-${file.id}" src="${file.url}" alt="${file.name}"/>`))
+                // }
+            }
+        )
+        if (!uploaderFile) {
+            throw "error,file data not found"
+        }
+        // $(document.body).append($imageViewContainer)
+        // this.viewer = new window.Viewer(document.getElementById("viewer-" + this.id))
+        // $("#img-" + uploaderFile.id).click()
+        window.open(uploaderFile.url)
     }
 }
 

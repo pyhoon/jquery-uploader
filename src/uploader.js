@@ -631,26 +631,18 @@ export default class Uploader {
         let $selectCard = $(event.target).parents(".jquery-uploader-card")
         let id = $selectCard[0].id
         let uploaderFile = null
-        //移除旧的图片容器
-        // this.viewer && this.viewer.destroy()
-        // $("#viewer-" + this.id).remove()
-        //添加新的
-        // let $imageViewContainer = $(`<div style="display: none" id="viewer-${this.id}"></div>`)
+
         this.files.forEach((file) => {
                 if (file.id === id) {
                     uploaderFile = file
                 }
-                // if (file.type === FILE_TYPE.IMAGE) {
-                //     $imageViewContainer.append($(`<img id="img-${file.id}" src="${file.url}" alt="${file.name}"/>`))
-                // }
             }
         )
+
         if (!uploaderFile) {
             throw "error,file data not found"
         }
-        // $(document.body).append($imageViewContainer)
-        // this.viewer = new window.Viewer(document.getElementById("viewer-" + this.id))
-        // $("#img-" + uploaderFile.id).click()
+        
         window.open(uploaderFile.url)
     }
 }
